@@ -1,0 +1,147 @@
+CREATE TABLE ClientInsurance (
+    clientInsurance_id number GENERATED AS IDENTITY PRIMARY KEY,
+    client_id number unique not null,
+    create_date date default sysdate,
+    creator_name varchar(20) not null,
+    incuranceType_id number references IncuranceType(incuranceType_id)
+);
+
+INSERT INTO ClientInsurance(client_id,creator_name,incuranceType_id)
+VALUES(05452256, 'Daniela', 1);
+
+
+CREATE TABLE IncuranceType (
+    incuranceType_id number GENERATED as IDENTITY PRIMARY KEY,
+    incuranceName varchar(30)
+);
+
+
+INSERT INTO IncuranceType(incuranceName)
+VALUES('Health Insurance');
+
+INSERT INTO IncuranceType(incuranceName)
+VALUES('Car Insurance');
+
+
+
+CREATE OR REPLACE PROCEDURE createClientInsurance 
+(client_id IN ClientInsurance.client_id%TYPE , 
+creator_name IN ClientInsurance.creator_name%TYPE,
+incuranceType_id IN ClientInsurance.incuranceType_id%TYPE)
+IS
+BEGIN 
+  INSERT INTO ClientInsurance(client_id,creator_name,incuranceType_id)
+  VALUES(client_id,creator_name,incuranceType_id);
+  dbms_output.put_line('ClientInsurance Added!');
+END createClientInsurance;
+
+
+execute createClientInsurance(0545226, 'Ivan', 2);
+execute createClientInsurance(0235226, 'Penka', 1);
+
+
+`(
+clientInsurance_id IN ClientInsurance.clientInsurance_id%TYPE,
+client_id IN ClientInsurance.client_id%TYPE, 
+creator_name IN ClientInsurance.creator_name%TYPE,
+incuranceType_id IN ClientInsurance.incuranceType_id%TYPE)
+IS
+BEGIN 
+  UPDATE ClientInsurance
+    SET 
+        client_id = client_id,
+        creator_name = creator_name,
+        incuranceType_id = incuranceType_id
+        WHERE clientInsurance_id = clientInsurance_id;
+    dbms_output.put_line('ClientInsurance Updated!');
+END updateClientInsurance;
+
+execute updateClientInsurance(1,0545226, 'Ivanka', 2);
+
+
+CREATE OR REPLACE PROCEDURE deleteClientInsurance 
+(clientInsurance_id IN ClientInsurance.clientInsurance_id%TYPE)
+IS
+BEGIN 
+  DELETE FROM ClientInsurance
+  WHERE clientInsurance_id = clientInsurance_id;
+    dbms_output.put_line('ClientInsurance Deleted!');
+END deleteClientInsurance;
+
+select * from ClientInsurance;
+
+execute deleteClientInsurance(4);
+
+
+
+
+
+CREATE TABLE ClientInsurance_Change(
+    client_id number,
+    change_date date default sysdate,
+    creator_name varchar(20),
+    incuranceType_id number,
+    changed_by varchar (20)
+);
+
+
+CREATE OR REPLACE TRIGGER ClientInsurance_Change_TRG
+AFTER UPDATE
+   ON ClientInsurance
+   FOR EACH ROW
+DECLARE
+    user_name varchar(20);
+BEGIN
+
+IF :old.client_id <> :new.client_id THEN
+    INSERT INTO ClientInsurance_Change
+    ( client_id,
+    column_name,
+    old_value,
+    new_value,
+    changed_by)
+    VALUES
+    ( :new.client_id,
+      'Client_id',
+      :old.client_id,
+      :new.client_id,
+      v_username);
+END IF;
+
+IF :old.incuranceType_id <> :new.incuranceType_id THEN
+    INSERT INTO ClientInsurance_Change
+    ( incuranceType_id,
+    column_name,
+    old_value,
+    new_value,
+    changed_by)
+    VALUES
+    ( :new.incuranceType_id,
+      'IncuranceType_id',
+      :old.incuranceType_id,
+      :new.incuranceType_id,
+      v_username);
+END IF;
+
+END;
+
+
+
+
+
+
+SELECT COUNT(*) FROM ClientInsurance;
+
+
+SELECT incuranceName
+FROM IncuranceType
+where upper(incuranceName) like '%A%';
+
+
+SELECT * FROM ClientInsurance
+order by create_date desc;
+
+
+
+SELECT * FROM ClientInsurance
+WHERE create_date > add_months(sysdate, -36);
